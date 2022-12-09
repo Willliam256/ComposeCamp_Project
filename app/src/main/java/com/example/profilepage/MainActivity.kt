@@ -26,7 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.profilepage.ui.theme.ProfilePageTheme
+import com.google.accompanist.systemuicontroller.SystemUiController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             ), RectangleShape, 0.92f
                         )
                     )
-                    ProfileUI(this)
+                    MainController(this)
                 }
             }
         }
@@ -61,11 +67,44 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfileUI(context: Context) {
+fun MainController(
+    context: Context,
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = "profile"
+){
+    //the nav host manages the navigation graph builder
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ){
+        composable("profile"){
+            ProfileUI(
+                context,
+                onNavigateToDetailsList = {
+                    navController.navigate("detailList"){
+                        //managing the backstack after navigating to the details composable
+                        popUpTo("profile") {
+                            inclusive = true //this exits the profile from the backstack
+                        }
+                    }
+                }
+            )
+        }
+        composable("detailList"){
+            DetailsList(context)
+        }
+    }
+}
+
+@Composable
+fun ProfileUI(
+    context: Context,
+    onNavigateToDetailsList: () -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-//        modifier = Modifier.padding(top = 100.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
         Image(
             painter = painterResource(R.drawable.husky_dog),
@@ -114,18 +153,17 @@ fun ProfileUI(context: Context) {
         ) {
             Button(
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary),
-                onClick = {
-                    Toast.makeText(context, "Thanks For following Me", Toast.LENGTH_LONG).show()
-                }
+                onClick = onNavigateToDetailsList
+//                    Toast.makeText(context, "Thanks For following Me", Toast.LENGTH_LONG).show(
             ) {
-                Text(text = "Follow")
+                Text(text = "View")
             }
             Button(
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
                 onClick = {
                     Toast.makeText(context, "Thanks For following Me", Toast.LENGTH_LONG).show()
                 }) {
-                Text(text = "Message")
+                Text(text = "Follow")
             }
         }
 
@@ -146,10 +184,48 @@ fun ProfileStatus(count: Int, type: String) {
     }
 }
 
+
+@Composable
+fun DetailsList(context: Context) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+//        modifier = Modifier.padding(top = 100.dp)
+    ) {
+        Image(
+            painter = painterResource(R.drawable.husky_dog),
+            contentDescription = "dog",
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentScale = ContentScale.Crop
+        )
+//      spacer is used to create a space of a given density btn elements
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "Husky Dog",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            fontStyle = FontStyle.Normal,
+            softWrap = true,
+            color = MaterialTheme.colors.primary
+        )
+        Text(
+            text = "Germany Most humble Dog",
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colors.secondary
+        )
+
+    }
+}
+
+
 //@Preview(showBackground = true)
 //@Composable
 //fun DefaultPreview() {
 //    ProfilePageTheme {
-//        ProfileUI()
+//        DetailsList()
 //    }
 //}
